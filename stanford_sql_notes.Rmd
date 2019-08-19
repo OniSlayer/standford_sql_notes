@@ -67,5 +67,114 @@ select * from sqlite_master where type in ('table', 'view')
 ## Basic Select Statements
 
 ```{python}
-import 
+# Example of the basic select statement
+
+run_query('''
+    select sID, sName, GPA
+    from Student
+    where GPA > 3.6
+''')
+```
+
+```{python}
+# Using a select statement to perform an inner join
+
+run_query('''
+    select sName, major
+    from Student, Apply
+    where Student.sID = Apply.sID
+''')
+```
+
+```{python}
+# Using the 'distinct' keyword to get only unique results in the obtained relation
+
+run_query('''
+    select distinct sName, major
+    from Student, Apply
+    where Student.sID = Apply.sID
+''')
+```
+
+```{python}
+# Use of the "and" operator to specify multiple conditions on a 'where' clause
+
+run_query('''
+    select sName, GPA, decision
+    from Student, Apply
+    where Student.sID = Apply.sID
+        and sizeHS < 1000
+        and major = 'CS'
+        and cname = 'Stanford';
+''')
+```
+
+```{python}
+# When performing joins is important to check any ambiguous column names
+
+run_query('''
+    select College.cName 
+    from College, Apply
+    where College.cName = Apply.cName
+        and enrollment > 20000
+        and major = 'CS'
+''')
+```
+
+```{python}
+# Joining three relations were table A is related to table B, and table B is related to table C
+
+run_query('''
+    select sName, GPA, Apply.cName
+    from Student, College, Apply
+    where Student.sID = Apply.sID and Apply.cName = College.cName;
+''')
+```
+
+```{python}
+# Order the results of a query using the 'order by' clause and the 'desc'keyword
+
+# When ordering by two different attributes, the first given will define the first sort
+# and the second attribute will be applied afterwards
+run_query('''
+    select sName, GPA, Apply.cName
+    from Student, College, Apply
+    where Student.sID = Apply.sID and Apply.cName = College.cName
+    order by sName desc, GPA
+''')
+```
+
+```{python}
+# The 'like' operator can be used inside a 'where' clause to select 
+
+run_query('''
+    select major, sID
+    from Apply
+    where major like '%eng%'
+''')
+
+```
+
+```{python}
+# On the select clause it's also possible to perform arithmetic operations
+
+run_query('''
+    select gpa * 100
+    from Student;
+
+''')
+```
+
+```{python}
+# You can use aliases to rename any attribute on the resulting relation
+
+run_query('''
+    select gpa * 100 as upgraded_gpa
+    from Student;
+
+''')
+```
+
+```{python}
+## 
 ```

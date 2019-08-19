@@ -19,5 +19,53 @@ This are personal notes about the SQL course offered by Stanford Lagunita.
 The url of the course is https://lagunita.stanford.edu/courses/DB/SQL/SelfPaced/course/
 
 ```{python}
+# Showing content of repo
+# !ls
+```
 
+```{python}
+# Importing neccessary libraries
+import sqlite3
+import pandas as pd
+```
+
+```{python}
+# Writting helper functions
+
+db = 'colleges.db'
+
+def run_query(q):
+    with sqlite3.connect(db) as conn:
+        return pd.read_sql(q, conn)
+
+def run_command(c):
+    with sqlite3.connect(db) as conn:
+        conn.isolation_level = None
+        conn.execute(c)
+
+def show_tables():
+    return run_query('''
+    select *
+    from sqlite_master
+    where type in ('table', 'view')
+    ''')
+
+```
+
+```{python}
+# Showing tables
+show_tables()
+```
+
+```{python}
+# Displaying necessary tables
+pd.read_sql_query('''
+select * from sqlite_master where type in ('table', 'view')
+''', conn)
+```
+
+## Basic Select Statements
+
+```{python}
+import 
 ```

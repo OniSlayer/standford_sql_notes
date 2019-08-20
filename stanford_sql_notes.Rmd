@@ -57,13 +57,6 @@ def show_tables():
 show_tables()
 ```
 
-```{python}
-# Displaying necessary tables
-pd.read_sql_query('''
-select * from sqlite_master where type in ('table', 'view')
-''', conn)
-```
-
 ## Basic Select Statements
 
 ```{python}
@@ -175,6 +168,186 @@ run_query('''
 ''')
 ```
 
+## Table Variables and Set Operators
+
 ```{python}
-## 
+# Table variables are simply aliases used on relations. This means that this aliases are 
+# declared on the "from" statement.
+
+run_query('''
+    select S.sID, A.cName, enrollment
+    from Student as S, College as C, Apply as A
+    where A.sID = S.sID and A.cName = C.cName;
+''')
+```
+
+```{python}
+# The union operator (union) is used to stack two relations. Each relation might be a table or can also be the product
+# of an statement
+
+run_query('''
+    select cName from College
+    
+    union
+    
+    select sName from Student;
+''')
+```
+
+```{python}
+# When performing unions, SQL will automatically delete the duplicates. To change this behaviour, you 
+# can se the "all" keyword
+
+run_query('''
+    select cName from College
+    
+    union all
+    
+    select sName from Student;
+''')
+```
+
+```{python}
+# The intersect operator returns the rows that appear in two relations. 
+
+run_query('''
+    select sID from Apply where major = 'CS'
+    
+    intersect
+    
+    select sID from Apply where major = 'EE';
+''')
+```
+
+```{python}
+# The intersect operator don't add expressive power to the language,
+# Any statement made with the intersect operator could also be performed with a self join
+
+run_query('''
+    select distinct A1.sID
+    from Apply as A1, Apply as A2
+    where A1.sID = A2.sID and A1.major = 'CS' and A2.major = 'EE'
+''')
+```
+
+```{python}
+# The except operator returns every row in a first relation that is not in a second relation
+
+run_query('''
+    select sID from Apply where major = 'CS'
+    
+    except
+    
+    select sID from Apply where major = 'EE'
+''')
+```
+
+```{python}
+# Again, the except operator don't add any expressive power to SQL
+# The same query can be written using an inner join and which statements
+
+run_query('''
+    select distinct sID
+    from Apply
+    where Apply.major = 'CS' and sID not in 
+        (select distinct A1.sID
+            from Apply as A1, Apply as A2
+            where A1.sID = A2.sID and A1.major = 'CS' and A2.major = 'EE')
+''')
+```
+
+## Subqueries in the WHERE Clause
+
+
+```{python}
+# Subqueries can be used in conjunction with the "in" operator to check if which values are in another computed
+# relation
+
+run_query('''
+    select sID, sName
+    from Student
+    where sID in (select sID from Apply where major = 'CS');
+''')
+```
+
+```{python}
+# You can also write a query using "in" and "not in" operators to emmulate the way the except operator works
+
+run_query('''
+select distinct sID
+from Apply
+where sID in (select sID from Apply where major = 'CS')
+    and sID not in (select sID from Apply where major = 'EE')
+''')
+```
+
+```{python}
+# The "exists" operator is used to check if a subquery is empty or not
+# Here, there is also a "correlated reference". This means that the inner query is accesing a value
+# from the outter query
+
+run_query('''
+    select cName, state
+    from College C1
+    where exists (select * from College C2
+                    where C2.state = C1.state and C2.cName != C1.cName);
+''')
+
+# This query is computing the subquery for each of the rows in the outer query, this is, for each college name
+# SQL computes the relation of the colleges in the same state and with a different name. If there is at least one
+# row in this relation, the statement will be evaluated as True
+```
+
+```{python}
+# The "not exists" operator returns True when a Query is empty. This functionality can be used 
+# to emmulate the selection of a max or min value
+
+run_query('''
+select cName
+from College C1
+where not exists (select *
+                    from College C2
+                    where C2.enrollment > C1.enrollment)
+''')
+
+# This query takes each college and compute a subquery that returns a relation containing Colleges with higher number of
+# enrollments. If there is no college with a higher number of enrollments, then the current college is the one with
+# the biggest enrollment
+```
+
+```{python}
+# The "all" statement evaluates an inequality between a number and a relation made of numbers. If the inequality is
+# true for all the cases when the number and the elements of the relation is compared, then True is returned.
+
+run_query('''
+select sName, GPA
+from Student
+where GPA >= all (select GPA from Student);
+''')
+
+# This query compares each of the GPA values against the list of all GPA's. If the current GPA is bigger or equal to all
+# of them, the name of the student is returned, hence finding the student(s) with the higher GPA.
+
+# NOTE: THE "all" OPERATOR DON'T EXIST IN SQL
+```
+
+```{python}
+# The "any" statement also evaluates an inequality between a value and a relation, but this time the result returns True
+# when the relations holds for at least one of the rows
+
+run_query('''
+    select Cname
+    from College S1
+    where not enrollment <= any (select enrollment from College S2
+                                    where S2.cName != S1.cName);
+
+''')
+
+# NOTE: THE 'any' OPERATOR DON'T EXIST IN SQL
+```
+
+## Subqueries in FROM and SELECT
+
+```{python}
+
 ```

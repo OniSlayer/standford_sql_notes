@@ -349,5 +349,152 @@ run_query('''
 ## Subqueries in FROM and SELECT
 
 ```{python}
+# The subqueries on the FROM clause are used to avoid performing multiple calculations 
+
+run_query('''
+    select *
+    from ( select sID, sName, GPA, GPA*(sizeHS /1000)as scaledGPA
+        from Student) as G
+    where abs(G.scaledGPA - GPA) > 1
+''')
+```
+
+```{python}
+# The subqueries on the SELECT clause are used to calculate a single value for each tupple of the 
+# outer query using referenciation. 
+
+run_query('''
+    select cName, state,
+        (select max(GPA)
+        from Apply, Student
+        where Apply.cName = College.cName) as GP
+    from College
+''')
+```
+
+## The join family of operators
+
+```{python}
+# The inner join is basically the same as the cartesian product and the 'where' clause together
+# The only difference is the syntax (use of "on" instead of "where")
+
+run_query('''
+    select distinct cName, major
+    from Student inner join Apply
+    on Student.sID = Apply.sID
+''')
+```
+
+```{python}
+# the default type of join is the inner join, so if no join is specified, the inner join will be 
+# performed
+
+run_query('''
+    select distinct cName, major
+    from Student join Apply
+    on Student.sID = Apply.sID
+''')
+```
+
+```{python}
+# the 'on' clause can alse be used to specify other conditions that would be placed on a where statement
+# otherwise
+
+run_query('''
+    select sName, GPA
+    from Student join Apply
+    on Student.sID = Apply.sID
+    and sizeHS < 1000 and major = 'CS' and cName = 'Stanford';
+''')
+```
+
+```{python}
+# The natural join will automatically perform a join in the attributes of both tables that have the same name
+# It will also automatically delete the repeated attribute (in this case the sID)
+run_query('''
+    select distinct *
+    from Student natural join Apply;
+''')
+```
+
+```{python}
+# It's considered a good practice to perform natural joins specifying the attribute that will be used
+# using the 'using' statement
+
+run_query('''
+    select sName, GPA
+    from Student natural join Apply using(sID)
+    where sizeHS < 1000 and major = 'CS' and cName = 'Stanford';
+''')
+
+# The SQLite engine don't suppor the 'using' operator on natural joins
+```
+
+```{python}
+# The left join works as usual
+
+run_query('''
+    select sName, sID, major
+    from Student
+    left outer join Apply using(sID);
+''')
+
+# Note that SQLite will mark a None where there is no corresponding information on the right table
+```
+
+```{python}
+# The outter joins could also be rewritter using the union operator 
+
+run_query('''
+    select sName, sID, major
+    from Student
+    natural join Apply
+    where Student.sID = Apply.sID
+    
+    union all
+    
+    select sName, sID, Null
+    from Student
+    where sID not in (select sID from Apply)
+''')
+
+# Here, the students that do apply are the joined using the union operator with the students that don't appear
+# on the Apply table (i.e. didn't apply to any college)
+```
+
+```{python}
+# You could also use the natural type of join in conjuction with the left join
+# This will automatically use the attributes with the same name to perform the left join
+
+run_query('''
+    select sName, sID, cName, major
+    from Apply
+    natural left outer join Student;
+''')
+```
+
+```{python}
+# The right join works in the same way as the left join
+
+run_query('''
+    select sName, sID, major
+    from Student
+    right outer join Apply using(sID);
+''')
+
+# Note. right joins are not supported
+```
+
+```{python}
+# The full outer join also works, but is not supported on SQL
+
+run_query('''
+    select sName, sID, major
+    from Student
+    full outer join Apply using(sID);
+''')
+```
+
+```{python}
 
 ```

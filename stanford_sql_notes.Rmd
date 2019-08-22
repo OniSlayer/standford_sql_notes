@@ -646,5 +646,37 @@ run_query('''
 ## Null Values
 
 ```{python}
+# Inserting two null values for demonstration purposes
+
+run_command('''
+    insert into Student values (432, 'Kevin', null, 1500), (321, 'Lori', null, 2500)
+''')
+```
+
+```{python}
+# The where clause can evaluate each condition to either true, false or unknown. When a condition is being 
+# evaluated on a null value, then the resul will be 'unknown' and won't appear in the final relation
+
+run_query('''
+    select sName
+    from Student
+    where GPA > 3 or GPA <= 3
+''')
+
+# The rows having kevin and lori will be evaluated to 'unknown', therefore don't appear on the final relation
+```
+
+```{python}
+# If the 'is null' operator is added, then lori and kevin will return a true and will appear
+# in the relation
+
+run_query('''
+    select sName
+    from Student
+    where GPA > 3 or GPA <= 3 or GPA is null
+''')
+```
+
+```{python}
 
 ```

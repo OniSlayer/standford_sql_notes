@@ -495,6 +495,156 @@ run_query('''
 ''')
 ```
 
+## Aggregation
+
+```{python}
+# Aggregation function can be computed over all of the values of a specified attribute
+# Note that a single value is returned
+
+run_query('''
+    select avg(GPA)
+    from Student;
+''')
+```
+
+```{python}
+# Aggregation functions can be used in conjunction with any other clause
+
+run_query('''
+    select min(GPA)
+    from Student
+    natural join Apply
+    where major = 'CS';
+''')
+```
+
+```{python}
+# The count aggregate function can make use of the 'distinct' keyword to only count unique values in a relation
+
+print(run_query('''
+    select count(sID)
+    from Apply
+    where cName = 'Cornell';
+'''))
+
+print(run_query('''
+    select count(distinct sID)
+    from Apply
+    where cName = 'Cornell';
+'''))
+```
+
+```{python}
+# Aggregate functions can be used to calculate differences between measures, each measure being
+# filtered with a 'where' condition
+
+run_query('''
+    select CS.avgGPA - NonCS.avgGPA
+    from 
+    (select avg(gpa) as avgGPA
+        from Student 
+        where sID in (select sID from Apply where major = 'CS')) as CS,
+    (select avg(gpa) as avgGPA
+        from Student
+        where sID not in (select sID from Apply where major = 'CS')) as NonCS
+''')
+
+```
+
+```{python}
+# the 'group by' clause allows to make segmentations using the unique values of an attribute
+# Groups can be used to compute aggregate funcitons on each one of them
+
+run_query('''
+    select cName, count(*)
+    from Apply
+    group by cName
+''')
+```
+
+```{python}
+# You can even specify multiple attributes to use for the groups. In this cases
+# each unique pair will be used as a single group.
+
+run_query('''
+    select cName, major, min(GPA), max(GPA)
+    from Student
+    natural join Apply
+    group by cName, major;
+''')
+```
+
+```{python}
+# The 'order by' clause can be used to order the result by an attribute or conjunction of 
+# attributes. 
+
+run_query('''
+    select Student.sID, cName
+    from Student, Apply
+    where Student.sID = Apply.sID
+    order by Student.sID;
+''')
+
+```
+
+```{python}
+# The 'desc' keyword can be used after ordering by an attribute to indicate that
+# the sorting should be made in descending order
+
+run_query('''
+    select Student.sID, cName
+    from Student, Apply
+    where Student.sID = Apply.sID
+    order by Student.sID desc;
+''')
+```
+
+```{python}
+# When using an aggregate function on one of the attributes of the returned relation and not using 
+# the aggreate function in other attributes, SQL will return the last value of each group
+
+run_query('''
+    select max(GPA), major, sName
+    from Apply, Student
+    where Apply.sID = Student.sID
+    group by major
+''')
+
+# Here the max(GPA) and major are correctly stating the max gpa of all the students that apply to each major,
+# but the sName might not correspond to the GPA
+```
+
+```{python}
+# The 'having' clause allows to apply filters (i.e. conditionals) on aggregate funcitons. This is because the 'having'
+# clause is applied after the 'group by' clause (this means that the having conditional is being checked 
+# agains each group and not to each tuple of the relation)
+
+run_query('''
+    select cName
+    from apply
+    group by cName
+    having count(*) < 5;
+''')
+
+# In this query, the groups are made first and for each of the groups, the count function is ran. If the result for the
+# particular group is bigger than 5, then the name of the college will be returned. 
+
+```
+
+```{python}
+# Another example of using the 'group by' clause and the 'having'clause is
+
+run_query('''
+    select major
+    from Student, Apply
+    where Student.sID = Apply.sID
+    group by major
+    having max(GPA) < (select avg(GPA) from Student)
+''')
+```
+
+## Null Values
+
 ```{python}
 
 ```
